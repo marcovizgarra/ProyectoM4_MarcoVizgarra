@@ -1,23 +1,36 @@
 import { useState } from 'react';
-import type { FormEvent } from 'react';
+import type { SubmitEvent } from 'react';
 import type { TaskFormValues } from '../types/task';
 
 interface TaskFormProps {
-  onAddTask: (values: TaskFormValues) => void;
+  initialValues?: TaskFormValues;
+  onSubmit: (values: TaskFormValues) => void;
+  onCancel?: () => void;
 }
 
-function TaskForm({ onAddTask }: TaskFormProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+function TaskForm({
+  initialValues,
+  onSubmit,
+  onCancel,
+}: TaskFormProps) {
+  const [title, setTitle] = useState(
+    initialValues?.title ?? ''
+  );
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const [description, setDescription] = useState(
+    initialValues?.description ?? ''
+  );
+
+  const isEditing = initialValues !== undefined;
+
+const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const trimmedTitle = title.trim();
 
     if (!trimmedTitle) return;
 
-    onAddTask({
+    onSubmit({
       title: trimmedTitle,
       description: description.trim(),
     });
@@ -28,6 +41,8 @@ function TaskForm({ onAddTask }: TaskFormProps) {
 
   return (
     <form className="task-form" onSubmit={handleSubmit}>
+      <h2>{isEditing ? 'Editar tarea' : 'Nueva tarea'}</h2>
+
       <div className="task-form__field">
         <label htmlFor="task-title">Título</label>
         <input
@@ -50,9 +65,17 @@ function TaskForm({ onAddTask }: TaskFormProps) {
         />
       </div>
 
-      <button type="submit" disabled={!title.trim()}>
-        Agregar tarea
-      </button>
+      <div className="task-form__actions">
+        <button type="submit" disabled={!title.trim()}>
+          {isEditing ? 'Guardar cambios' : 'Agregar tarea'}
+        </button>
+
+        {isEditing && onCancel && (
+          <button type="button" onClick={onCancel}>
+            Cancelar
+          </button>
+        )}
+      </div>
     </form>
   );
 }
